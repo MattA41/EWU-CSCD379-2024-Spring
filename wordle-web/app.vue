@@ -1,41 +1,46 @@
 <template>
   <NuxtLayout>
     <v-app>
-      <v-card class="mx-auto my-8" elevation="16" max-width="344">
-        <v-card-item>
-          <v-card-title> Wordle </v-card-title>
-          <v-card-subtitle> This is our super basic wordle game </v-card-subtitle>
-        </v-card-item>
+      <v-app-bar color="primary" :elevation="2">
+        <template v-slot:prepend>
+          <v-icon color="secondary"> mdi-book </v-icon>
+        </template>
 
-        <v-card-text>
-          {{ myText }}
-        </v-card-text>
+        <v-app-bar-title>WordleApp</v-app-bar-title>
 
-        <v-card-actions>
-          <v-spacer />
-          <v-btn color="pink" variant="elevated" elevation="8" @click="click()">
-            Click Me!
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-
-      <NuxtPage />
+        <v-btn @click="router.push('/')">Home</v-btn>
+        <v-btn @click="router.push('/test')">Test</v-btn>
+        <v-btn icon="mdi-theme-light-dark" @click="toggleTheme" />
+        <v-btn icon="mdi-help-circle" @click="showHelpDialog = true" />
+        <HelpDialog v-model="showHelpDialog" />
+      </v-app-bar>
+      <v-main>
+        <NuxtPage />
+      </v-main>
     </v-app>
   </NuxtLayout>
 </template>
 
 <script setup lang="ts">
-import { Game } from "./scripts/game";
-const game: Game = new Game("JUMBO");
+import { useTheme } from "vuetify";
+import nuxtStorage from "nuxt-storage";
 
-game.guess("JUMBO");
+const router = useRouter();
+const theme = useTheme();
+const showHelpDialog = ref(false);
 
-console.log(game);
+onMounted(() => {
+  var defaultTheme = nuxtStorage.localStorage.getData("theme");
+  theme.global.name.value = defaultTheme ?? "dark";
+});
 
-const myText = ref("Hello World");
+function toggleTheme() {
+  if (theme.global.name.value === "light") {
+    theme.global.name.value = "dark";
+  } else {
+    theme.global.name.value = "light";
+  }
 
-function click() {
-  myText.value = "Goodbye World";
-  window.alert("Hello World");
+  nuxtStorage.localStorage.setData("theme", theme.global.name.value);
 }
 </script>
