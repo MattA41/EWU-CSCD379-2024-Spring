@@ -17,12 +17,13 @@ The purpose of this assignment is to solidify your learning of:
     - Support adding a new word ❌✅
     - Editing words is not supported ❌✅
     - Duplicate words should not be allowed ❌✅
-    - Support changing the common word boolean flag ❌✅
+    - Add & support changing the common word boolean flag ❌✅
+      - Filter the list of returned words by common words ❌✅ 
     - Words should be sorted alphabetically ❌✅
   - Provide a text box for searching words AS YOU TYPE which supports searching for words starting with letters specified ❌✅
   - Provide a menu item for navigating to the WordEditor page ❌✅
     - Anyone can look at the word list ❌✅
-    - Word list is paginated (10-100 per page) ❌✅
+    - Word list is paginated on the server side (10-100 per page) ❌✅
   - Any logged in user can change the common word flag ❌✅
     - There is a login page/component/popup/etc for users to sign in ❌✅
   - Only users over 21 years of age (based on birthday) with a claim of MasterOfTheUniverse can add and remove words ❌✅

@@ -1,66 +1,98 @@
 <template>
   <v-container>
-    <v-card class="text-center">
-      <v-alert
-        v-if="game.gameState != GameState.Playing"
-        :color="game.gameState == GameState.Won ? 'success' : 'error'"
-        class="mb-5"
-        tile
-      >
-        <h3>
-          You've
-          {{ game.gameState == GameState.Won ? "Won! 🥳" : "Lost... 😭" }}
-        </h3>
-        <v-card-text>
-          The word was: <strong>{{ game.secretWord }}</strong>
-        </v-card-text>
-        <v-btn variant="outlined" @click="game.startNewGame()">
-          <v-icon size="large" class="mr-2"> mdi-restart </v-icon> Restart Game
-        </v-btn>
-      </v-alert>
-      <v-card-title v-else>Wordle</v-card-title>
+    <v-row>
+      <v-col cols="12" lg="8">
+        <v-progress-linear v-if="game.isBusy" color="primary" indeterminate />
+        <v-card v-else class="text-center">
+          <v-alert
+            v-if="game.gameState != GameState.Playing"
+            :color="game.gameState == GameState.Won ? 'success' : 'error'"
+            class="mb-5"
+            tile
+          >
+            <h3>
+              You've
+              {{ game.gameState == GameState.Won ? "Won! 🥳" : "Lost... 😭" }}
+            </h3>
+            <v-card-text>
+              The word was: <strong>{{ game.secretWord }}</strong>
+            </v-card-text>
+            <v-row v-if="game.stats" class="mb-1" justify="center">
+              <v-col cols="auto">
+                <v-progress-circular
+                  size="75"
+                  width="10"
+                  v-model="game.stats.winPercentage"
+                >
+                  {{ game.stats.winPercentage }} %
+                </v-progress-circular>
+                <br />
+                <i class="text-caption"> Success Rate </i>
+              </v-col>
+              <v-col cols="auto">
+                <v-progress-circular
+                  size="75"
+                  width="10"
+                  :model-value="
+                    game.stats.averageGuessesPercent(game.maxAttempts)
+                  "
+                >
+                  {{
+                    game.stats
+                      .averageGuessesPercent(game.maxAttempts)
+                      .toFixed(0)
+                  }}
+                  %
+                </v-progress-circular>
+                <br />
+                <i class="text-caption"> Average Guesses </i>
+              </v-col>
+            </v-row>
+            <v-btn variant="outlined" @click="game.startNewGame()">
+              <v-icon size="large" class="mr-2"> mdi-restart </v-icon> Restart
+              Game
+            </v-btn>
+          </v-alert>
+          <v-card-title v-else>Wordle</v-card-title>
 
-      <GameBoardGuess
-        v-for="(guess, i) of game.guesses"
-        :key="i"
-        :guess="guess"
-      />
+          <GameBoardGuess
+            v-for="(guess, i) of game.guesses"
+            :key="i"
+            :guess="guess"
+          />
 
-      <div class="my-10">
-        <Keyboard />
-      </div>
+          <div class="my-10">
+            <Keyboard />
+          </div>
 
-      <v-btn @click="game.submitGuess()" class="mb-5" color="primary">
-        Guess!
-      </v-btn>
-    </v-card>
+          <div class="mb-5">
+            <v-btn @click="game.submitGuess()" class="mb-5" color="primary">
+              Guess!
+            </v-btn>
+            <br />
+            <v-btn @click="hint" color="primary"> Hint! 👀 </v-btn>
+          </div>
+        </v-card>
+      </v-col>
+      <v-col>
+        <Chat />
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
 <script setup lang="ts">
+import axios from "axios";
+import TokenService from "~/scripts/tokenService";
 import { Game, GameState } from "../scripts/game";
-import Axios from "axios";
 
-const game: Ref<Game> = ref(new Game("GAMES"));
-provide("GAME", game.value);
+const game = reactive(new Game());
+game.startNewGame();
+provide("GAME", game);
 
-const myGuess = ref("");
+const tokenService = new TokenService();
 
 onMounted(() => {
-  if (
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1"
-  ) {
-    Axios.defaults.baseURL = "https://localhost:7266/";
-  } else {
-    Axios.defaults.baseURL = "https://wordleapiewu.azurewebsites.net/";
-  }
-
-  // Get random word from word list
-  getWordFromApi().then((word) => {
-    game.value = new Game(word);
-  });
-
   window.addEventListener("keyup", onKeyup);
 });
 
@@ -68,21 +100,21 @@ onUnmounted(() => {
   window.removeEventListener("keyup", onKeyup);
 });
 
-async function getWordFromApi(): Promise<string> {
-  let wordUrl = "word/wordOfTheDay";
-
-  const response = await Axios.get(wordUrl);
-  console.log("Response from API: " + response.data);
-  return response.data;
-}
-
 function onKeyup(event: KeyboardEvent) {
   if (event.key === "Enter") {
-    game.value?.submitGuess();
+    game.submitGuess();
   } else if (event.key == "Backspace") {
-    game.value?.removeLastLetter();
+    game.removeLastLetter();
   } else if (event.key.match(/[A-z]/) && event.key.length === 1) {
-    game.value?.addLetter(event.key.toUpperCase());
+    game.addLetter(event.key.toUpperCase());
   }
+}
+
+function hint() {
+  const headers = tokenService.generateTokenHeader();
+  console.log(headers);
+  axios.get("Word/WordOfTheDayHint", { headers }).then((response) => {
+    alert(`Hint: ${response.data}`);
+  });
 }
 </script>
