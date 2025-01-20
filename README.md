@@ -1,5 +1,5 @@
 ## Note ## 
-My partner and I ended up using his repo for our class: [his repo](https://github.com/NathanMarsee/EWU-CSCD379-2024-Spring) I did most of the front end development and he did most of the back end development.
+My partner and I ended up using [his repo](https://github.com/NathanMarsee/EWU-CSCD379-2024-Spring) for our class:  I did most of the frontend development and he did most of the backend development.
 
 
 
